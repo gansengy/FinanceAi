@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% block title %}Дешборд{% endblock %}
+{% block content %}
+<h2>📊 Дешборд</h2>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Цього тижня</h5>
+                <p class="card-text h4">{{ week_sum }} грн</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Цього місяця</h5>
+                <p class="card-text h4">{{ month_sum }} грн</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Останні транзакції</h4>
+<table class="table table-sm">
+    <thead>
+        <tr><th>Товар</th><th>Ціна</th><th>Категорія</th><th>Час</th></tr>
+    </thead>
+    <tbody>
+        {% for t in last_transactions %}
+        <tr>
+            <td>{{ t.name }}</td>
+            <td>{{ t.price }} грн</td>
+            <td>{{ t.category }}</td>
+            <td>{{ t.created_at|date:"d.m H:i" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-4">📊 Категорії витрат</h4>
+<table class="table">
+    <thead><tr><th>Категорія</th><th>Сума</th><th>К-сть</th></tr></thead>
+    <tbody>
+        {% for c in category_data %}
+        <tr><td>{{ c.category|title }}</td><td>{{ c.total }} грн</td><td>{{ c.count }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

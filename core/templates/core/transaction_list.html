@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block title %}Усі транзакції{% endblock %}
+{% block content %}
+<h2>📒 Усі транзакції</h2>
+<table class="table table-striped">
+    <thead><tr><th>Дата</th><th>Товар</th><th>Ціна</th><th>Категорія</th></tr></thead>
+    <tbody>
+        {% for t in transactions %}
+        <tr>
+            <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{{ t.name }}</td>
+            <td>{{ t.price }} грн</td>
+            <td>{{ t.category }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

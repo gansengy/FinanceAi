@@ -1,50 +1,225 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% block title %}Дешборд{% endblock %}
 {% block content %}
-<h2>📊 Дешборд</h2>
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Цього тижня</h5>
-                <p class="card-text h4">{{ week_sum }} грн</p>
+
+<div class="container mt-4">
+    <h1 class="mb-4">📊 Дешборд</h1>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <!-- Витрати -->
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h6 class="card-title text-danger">Витрати (тиждень)</h6>
+                    <h3 class="text-danger">-{{ week_expenses|floatformat:2 }} грн</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h6 class="card-title text-danger">Витрати (місяць)</h6>
+                    <h3 class="text-danger">-{{ month_expenses|floatformat:2 }} грн</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Прибутки -->
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="card-title text-success">Прибуток (тиждень)</h6>
+                    <h3 class="text-success">+{{ week_income|floatformat:2 }} грн</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="card-title text-success">Прибуток (місяць)</h6>
+                    <h3 class="text-success">+{{ month_income|floatformat:2 }} грн</h3>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Цього місяця</h5>
-                <p class="card-text h4">{{ month_sum }} грн</p>
+
+    <!-- Баланс -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card {% if week_balance >= 0 %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">Баланс за тиждень</h5>
+                    <h3 class="{% if week_balance >= 0 %}text-success{% else %}text-warning{% endif %}">
+                        {% if week_balance >= 0 %}+{% endif %}{{ week_balance|floatformat:2 }} грн
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card {% if month_balance >= 0 %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">Баланс за місяць</h5>
+                    <h3 class="{% if month_balance >= 0 %}text-success{% else %}text-warning{% endif %}">
+                        {% if month_balance >= 0 %}+{% endif %}{{ month_balance|floatformat:2 }} грн
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нещодавні транзакції -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Останні транзакції</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Тип</th>
+                                    <th>Назва</th>
+                                    <th>Сума</th>
+                                    <th>Категорія</th>
+                                    <th>Час</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in last_transactions %}
+                                <tr>
+                                    <td>
+                                        {% if t.transaction_type == 'income' %}
+                                            <span class="badge bg-success">Прибуток</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Витрата</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ t.name }}</td>
+                                    <td class="{% if t.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if t.transaction_type == 'income' %}+{% else %}-{% endif %}{{ t.price }} грн
+                                    </td>
+                                    <td>
+                                        {% if t.category %}
+                                            {{ t.category.icon }} {{ t.category.name }}
+                                        {% else %}
+                                            Без категорії
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ t.created_at|date:"d.m H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">Немає транзакцій</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Графіки -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Графік прибутків та витрат</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Розподіл витрат по категоріях</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" width="400" height="400"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<h4>Останні транзакції</h4>
-<table class="table table-sm">
-    <thead>
-        <tr><th>Товар</th><th>Ціна</th><th>Категорія</th><th>Час</th></tr>
-    </thead>
-    <tbody>
-        {% for t in last_transactions %}
-        <tr>
-            <td>{{ t.name }}</td>
-            <td>{{ t.price }} грн</td>
-            <td>{{ t.category }}</td>
-            <td>{{ t.created_at|date:"d.m H:i" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly income/expenses chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Витрати (грн)',
+                data: {{ monthly_expenses_data|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            },
+            {
+                label: 'Прибутки (грн)',
+                data: {{ monthly_income_data|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 
-<h4 class="mt-4">📊 Категорії витрат</h4>
-<table class="table">
-    <thead><tr><th>Категорія</th><th>Сума</th><th>К-сть</th></tr></thead>
-    <tbody>
-        {% for c in category_data %}
-        <tr><td>{{ c.category|title }}</td><td>{{ c.total }} грн</td><td>{{ c.count }}</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    // Category pie chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                data: {{ category_amounts|safe }},
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40',
+                    '#FF6384',
+                    '#C9CBCF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+
 {% endblock %}

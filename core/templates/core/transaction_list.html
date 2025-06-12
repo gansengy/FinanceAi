@@ -2,17 +2,63 @@
 {% block title %}Усі транзакції{% endblock %}
 {% block content %}
 <h2>📒 Усі транзакції</h2>
+
+<!-- Показати повідомлення -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Пошуковий бар -->
+<form method="GET" action="{% url 'transaction_list' %}" class="search-bar mb-3">
+    <label for="search-input" class="form-label">Пошук товарів:</label>
+    <input type="text" id="search-input" name="search" class="form-control d-inline-block w-50" placeholder="Шукати товари..." value="{{ search_query }}">
+    <button type="submit" class="btn btn-primary">Пошук</button>
+</form>
+
+<!-- Таблиця транзакцій -->
 <table class="table table-striped">
-    <thead><tr><th>Дата</th><th>Товар</th><th>Ціна</th><th>Категорія</th></tr></thead>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Товар</th>
+            <th>Ціна</th>
+            <th>Категорія</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
     <tbody>
         {% for t in transactions %}
         <tr>
             <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
             <td>{{ t.name }}</td>
             <td>{{ t.price }} грн</td>
-            <td>{{ t.category }}</td>
+            <td>
+                {% if t.category %}
+                    {{ t.category.icon }} {{ t.category.name }}
+                {% else %}
+                    Без категорії
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'edit_transaction' t.id %}" class="btn btn-sm btn-warning me-2">
+                    ✏️ Редагувати
+                </a>
+                <a href="{% url 'delete_transaction' t.id %}" class="btn btn-sm btn-danger">
+                    🗑️ Видалити
+                </a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Повідомлення, якщо немає транзакцій -->
+{% if not transactions %}
+<p>Транзакцій не знайдено.</p>
+{% endif %}
 {% endblock %}

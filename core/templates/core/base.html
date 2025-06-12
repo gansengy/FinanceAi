@@ -10,10 +10,13 @@
     <div class="container">
         <a class="navbar-brand" href="{% url 'dashboard' %}">💸 FinanceAI</a>
         <div class="collapse navbar-collapse">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav w-100 d-flex">
                 <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Дешборд</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'category_list' %}">Категорії</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'transaction_list' %}">Транзакції</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'manual_transaction' %}">Додати транзакцію</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'upload_check' %}">Завантажити чек</a></li>
+                <li class="nav-item ms-auto"><a class="nav-link" href="{% url 'user_profile' %}">Користувач</a></li>
             </ul>
         </div>
     </div>
